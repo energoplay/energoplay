@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#081426">
+<title>ECO DETECTIVE — восстановленная версия</title>
+<style>
+:root{color-scheme:dark;--bg:#081426;--panel:#10263b;--line:#29465b;--ink:#e2f0f2;--muted:#a6bfcc;--accent:#62e2c0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,sans-serif}
+button,input,select{font:inherit}
+button{min-height:44px;border:1px solid var(--line);border-radius:12px;padding:10px 16px;background:#18344b;color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:disabled{opacity:.4;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.primary{background:var(--accent);color:#062923;font-weight:750}
+.quiet{color:var(--muted)}
+.good{color:#8af1c5}.bad{color:#ffc591}
+[hidden]{display:none!important}
+#menu{min-height:100dvh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 75% 25%,#15505a88,transparent 55%),linear-gradient(135deg,#081426,#102b40)}
+.menu-box{width:min(780px,100%)}
+.tag{font-size:12px;letter-spacing:3px;color:var(--accent)}
+h1{font-size:clamp(38px,8vw,76px);line-height:1.05;letter-spacing:-3px;margin:22px 0}
+h1 span{color:var(--accent)}
+h2{font-size:24px;margin:0}
+h3{font-size:18px}
+.subtitle{font-size:clamp(20px,4vw,30px);color:#bdd6df}
+.menu-buttons{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:30px 0}
+.menu-buttons .primary{grid-column:1/-1}
+.notice{color:var(--muted);font-size:13px;border-left:2px solid #407584;padding-left:15px}
+#game{height:100dvh;display:grid;grid-template-rows:auto 1fr auto;overflow:hidden}
+header,footer{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#0c1d2f;border-bottom:1px solid var(--line)}
+header .heading{flex:1;min-width:0}
+header strong,header small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+header small{font-size:12px;color:var(--muted)}
+#viewport{position:relative;min-height:0;overflow:hidden;background:#07121f}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.tools{position:absolute;top:10px;right:10px;display:flex;gap:6px}
+.tools button{background:#102b40e8;min-width:44px;padding:8px}
+#mission{position:absolute;left:12px;top:12px;max-width:calc(100% - 170px);padding:9px 12px;background:#091b2be8;border:1px solid var(--line);border-radius:10px;font-size:13px;pointer-events:none}
+footer{border-bottom:0;border-top:1px solid var(--line);justify-content:space-between;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+#near{font-size:14px;color:var(--muted);max-width:60%}
+#interact{min-width:130px}
+#joystick{position:absolute;bottom:24px;left:24px;width:120px;height:120px;border:2px solid #6ce6c05c;border-radius:50%;background:#0b273b77;touch-action:none;user-select:none}
+#knob{position:absolute;left:35px;top:35px;width:46px;height:46px;border-radius:50%;background:#65e4c099;border:2px solid #b1ffe6;pointer-events:none}
+#overlay{position:fixed;inset:0;z-index:10;background:#020a15ba;display:grid;place-items:center;padding:18px;backdrop-filter:blur(7px)}
+#dialog{width:min(860px,100%);max-height:92dvh;overflow:auto;background:linear-gradient(145deg,#132d43,#0d2033);border:1px solid #416777;border-radius:20px;padding:24px;box-shadow:0 30px 100px #0008}
+.dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:-24px;background:#112b40;z-index:2;padding:10px 0}
+.dialog-body{padding-top:12px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.card{padding:15px;background:#0b2032;border:1px solid var(--line);border-radius:12px}
+.card strong,.card small{display:block}
+.card small{color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
+.field{display:grid;gap:7px;margin:15px 0}
+.field input[type=number],select{width:100%;padding:10px;border-radius:8px;background:#091d2f;border:1px solid #507185;color:var(--ink)}
+.check{display:flex;align-items:flex-start;gap:10px;margin:14px 0}
+.check input{width:22px;height:22px;flex:0 0 auto}
+.metric{font-size:26px;color:var(--accent);font-weight:750}
+.pill{padding:3px 8px;border:1px solid var(--line);border-radius:8px;font-size:12px;color:var(--muted)}
+.selected{border-color:var(--accent);background:#1b514c}
+.link{display:flex;gap:10px;justify-content:space-between;align-items:center;margin:10px 0;padding:12px;border:1px solid var(--line);border-radius:10px}
+.link span{min-width:0}
+.feedback{padding:14px;border:1px solid #426276;border-radius:12px;background:#0b2134;margin:15px 0}
+#toast{position:fixed;z-index:30;left:50%;bottom:90px;transform:translateX(-50%);max-width:90%;padding:12px 18px;background:#193e4b;border:1px solid var(--accent);border-radius:12px;pointer-events:none}
+@media(min-width:901px) and (pointer:fine){#joystick{display:none}}
+@media(max-width:600px){
+ body{font-size:15px}
+ #menu{padding:22px}
+ .menu-buttons{grid-template-columns:1fr}
+ .menu-buttons .primary{grid-column:auto}
+ header{padding:8px;gap:6px}
+ header button{padding:8px 10px}
+ header strong{font-size:13px}
+ header small{font-size:10px}
+ #dialog{max-height:96dvh;padding:16px;border-radius:14px}
+ #overlay{padding:8px}
+ .dialog-head{top:-16px}
+ .grid{grid-template-columns:1fr}
+ #mission{font-size:11px;max-width:calc(100% - 125px)}
+ .tools{gap:4px}
+ .tools button{min-width:36px;padding:5px}
+ #joystick{width:108px;height:108px;left:18px;bottom:24px}
+ #knob{left:29px;top:29px}
+ #near{font-size:12px}
+ #interact{min-width:110px;padding:8px}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<section id="menu">
+ <div class="menu-box">
+  <div class="tag">БЮРО ЭНЕРГЕТИЧЕСКИХ РАССЛЕДОВАНИЙ</div>
+  <h1>ECO<br><span>DETECTIVE</span></h1>
+  <p class="subtitle">Тайна пропавшей энергии</p>
+  <p class="quiet">Найди улики. Проверь данные. Сохрани энергию безопасно.</p>
+  <div class="menu-buttons">
+   <button id="new" class="primary">Начать расследование</button>
+   <button id="continue">Продолжить</button>
+   <button id="cases">Выбор дела</button>
+   <button id="achievements">Досье детектива</button>
+   <button id="settings">Настройки</button>
+   <button id="zip">Скачать ZIP всей этой версии</button>
+  </div>
+  <p class="notice">Переносная реконструкция по описанию проекта.
+  Условная модель СШ №225 Минска: планировки, характеристики и проблемы
+  вымышлены. Это не измерения и не сведения о нарушениях в реальной школе.</p>
+ </div>
+</section>
+
+<section id="game" hidden>
+ <header>
+  <button id="back" aria-label="Главное меню">☰</button>
+  <div class="heading"><small id="case-number"></small><strong id="case-title"></strong></div>
+  <button id="notebook">Улики</button>
+  <button id="report">Отчёт</button>
+ </header>
+ <div id="viewport">
+  <canvas id="canvas" aria-label="Игровая комната. WASD или стрелки — движение, E — осмотр"></canvas>
+  <div id="mission"></div>
+  <div class="tools">
+   <button id="minus" aria-label="Отдалить">−</button>
+   <button id="plus" aria-label="Приблизить">+</button>
+   <button id="full" aria-label="Полный экран">⛶</button>
+  </div>
+  <div id="joystick" aria-label="Сенсорный джойстик"><div id="knob"></div></div>
+ </div>
+ <footer><span id="near">Подойдите к оборудованию</span><button id="interact" class="primary">Осмотреть · E</button></footer>
+</section>
+
+<div id="overlay" hidden>
+ <section id="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" tabindex="-1"></section>
+</div>
+<div id="toast" hidden role="status"></div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const KEY = 'eco-detective:portable-reconstruction:v1';
+const WORLD = {w:1040,h:700};
+const money = v => Number(v).toLocaleString('ru-RU',{maximumFractionDigits:3});
+const D = (name,power,hours,quantity,note,type='computer') =>
+ ({name,power,hours,quantity,note,type});
+
+const cases = [
+{
+ title:'Школьная аномалия',room:'Кабинет информатики',color:'#1c5060',
+ intro:'После уроков кабинет продолжает расходовать энергию. Сравните мощность, время ожидания и назначение оборудования.',
+ devices:[
+  D('Системные блоки',80,10,6,'Шесть компьютеров остаются в ожидании 10 часов. По учебному регламенту достаточно 2 часов.'),
+  D('Мониторы',20,10,6,'Шесть мониторов повторяют режим ожидания компьютеров.'),
+  D('Проектор',300,2,1,'Работает 2 часа, только во время уроков. Высокая мощность сама по себе не доказывает потери.','projector'),
+  D('Освещение',72,8,1,'Сокращение с 8 до 4 часов допустимо только при подтверждённом дневном свете.','lamp'),
+  D('Компьютер учителя',65,2,1,'Работает по расписанию и нужен для занятий.'),
+  D('Сетевой узел',12,24,1,'Связь нужна круглосуточно. Отключение не является безопасной мерой.','network'),
+  D('Расписание занятий',0,0,1,'Активные уроки учитываются отдельно. В этой задаче регулируется именно ожидание ПК.','document'),
+  D('Регламент обслуживания',0,0,1,'Перед сном ПК сохраняют файлы. Дневной свет нужно подтвердить.','document')
+ ],
+ question:'Сколько расходуют только 6 системных блоков в ожидании за 20 учебных дней?',
+ answers:['9,6 кВт·ч','96 кВт·ч','960 кВт·ч'],answer:1,
+ hypotheses:['Причина — длительное ожидание ПК и мониторов','Нужно запретить проектор из-за его мощности','Нужно выключить всю связь'],correct:0,
+ explanation:'80 × 6 × 10 × 20 / 1000 = 96 кВт·ч. Снижение времени ожидания сохраняет нужную работу.',
+ links:[[0,6],[1,6]],goal:'Сэкономьте не менее 84 кВт·ч за 20 дней.'
+},
+{
+ title:'Свет, который не гаснет',room:'Холл и коридор',color:'#31545c',
+ intro:'Разные зоны освещаются одинаково долго, хотя условия различаются. Аварийная группа должна оставаться готовой.',
+ devices:[
+  D('Зона у окон',108,10,1,'Достаточно 4 часов искусственного освещения при подтверждённом дневном свете.','lamp'),
+  D('Внутренний коридор',144,10,1,'Минимум 6 часов света: дневного освещения здесь недостаточно.','lamp'),
+  D('Лестница',72,12,1,'Нужно минимум 8 часов. Безопасность проходов обязательна.','lamp'),
+  D('Аварийная группа',12,24,1,'Резервная готовность сохраняется 24 часа.','lamp'),
+  D('Расписание доступа',0,0,1,'У окон — 4 часа, внутренний проход — 6, лестница — 8.','document'),
+  D('Акт проверки датчика',0,0,1,'Срабатывание датчика на лестнице не гарантировано. Полностью полагаться на него нельзя.','document'),
+  D('Журнал безопасности',0,0,1,'Аварийное освещение не отключают ради формальной экономии.','document')
+ ],
+ question:'Каков расход лестничной группы 72 Вт за 12 часов × 20 дней?',
+ answers:['1,728 кВт·ч','17,28 кВт·ч','172,8 кВт·ч'],answer:1,
+ hypotheses:['Разделить группы по условиям и расписанию','Выключить аварийную группу','Оставить лестницу тёмной'],correct:0,
+ explanation:'72 × 12 × 20 / 1000 = 17,28 кВт·ч. Экономия допустима только при сохранении безопасного освещения.',
+ links:[[0,4],[1,4],[2,5],[3,6]],goal:'Сэкономьте не менее 20 кВт·ч.'
+},
+{
+ title:'Загадка школьной столовой',room:'Столовая',color:'#48604f',
+ intro:'Сравните график приготовления, хранения и выдачи еды. Бюджет модернизации ограничен пятью кредитами.',
+ devices:[
+  D('Холодильник',120,24,1,'120 Вт — средняя мощность с учётом циклов компрессора. Холодовую цепь сохраняют.','fridge'),
+  D('Морозильник',160,24,1,'Нужен круглосуточно. Отключение ради экономии небезопасно.','fridge'),
+  D('Вытяжка',300,10,1,'Таймер вне необходимых операций: 2 кредита, 24 кВт·ч экономии.','vent'),
+  D('Мармит',1200,5,1,'Настройка выдачи без лишнего ожидания: 3 кредита, 48 кВт·ч.','warmer'),
+  D('Свет столовой',180,10,1,'Учебный LED-проект: 2 кредита, 16 кВт·ч.','lamp'),
+  D('Печь',2000,3,1,'Самая мощная, но работает только во время приготовления.','oven'),
+  D('Расписание кухни',0,0,1,'Разделяйте приготовление, выдачу и простой. Не сокращайте обязательные операции.','document'),
+  D('Журнал оборудования',0,0,1,'Обслуживание уплотнений: 3 кредита, 7,2 кВт·ч. Это не разрешение выключать холод.','document')
+ ],
+ question:'Сколько вместе расходуют холодильник и морозильник за 20 дней?',
+ answers:['13,44 кВт·ч','134,4 кВт·ч','470,4 кВт·ч'],answer:1,
+ hypotheses:['Убрать лишнее ожидание мармита и вытяжки','Выключать холодильники на ночь','Полностью отказаться от приготовления'],correct:0,
+ explanation:'(120 + 160) × 24 × 20 / 1000 = 134,4 кВт·ч. Нужное хранение нельзя приравнивать к потерям.',
+ links:[[0,7],[1,7],[2,6],[3,6],[4,6],[5,6]],goal:'Экономия ≥64 кВт·ч, бюджет ≤5.'
+},
+{
+ title:'Невидимые потери',room:'Учебные помещения и спортзал',color:'#4b506c',
+ intro:'Оцените передачу тепла через окна и дверь. Используется упрощённая модель, отдельно от электричества.',
+ devices:[
+  D('Окно кабинета А',0,0,1,'U=3 Вт/(м²·К), площадь 8 м². Улучшение до U=1,4 стоит 3 кредита.','window'),
+  D('Окно кабинета Б',0,0,1,'U=1,3; площадь 8 м². Оно уже лучше утеплено.','window'),
+  D('Окна спортзала',0,0,1,'U=3; площадь 16 м². Улучшение до U=1,5 стоит 4 кредита.','window'),
+  D('Наружная дверь',0,0,1,'U=4; площадь 4 м². Улучшение до U=2 стоит 2 кредита.','door'),
+  D('Термостат',0,0,1,'Комфорт: кабинеты 20–22 °C, спортзал 18–20 °C.','heating'),
+  D('Температурный журнал',0,0,1,'Снаружи 4 °C. Исходно: кабинеты 22 °C, спортзал 20 °C. Период 160 часов.','document'),
+  D('Регламент комфорта',0,0,1,'Q = U × A × ΔT × t / 1000. Это передача тепла без учёта вентиляции, солнца и инерции.','document')
+ ],
+ question:'Как учитывать расчётные теплопотери и электрический расход?',
+ answers:['Сложить всё как электричество','Считать отдельно','Назвать тепловые кВт·ч мощностью'],answer:1,
+ hypotheses:['Сравнить U, площадь, температуры и комфорт вместе','Понизить температуру до 15 °C','Судить только по цвету тепловой схемы'],correct:0,
+ explanation:'Тепловые и электрические кВт·ч относятся к разным балансам. Большая площадь может перевесить разницу коэффициентов U.',
+ links:[[0,5],[1,5],[2,5],[3,5],[4,6],[2,6]],goal:'Экономия тепла ≥80 кВт·ч, бюджет ≤6.'
+},
+{
+ title:'Энергетический кризис',room:'Аналитический центр',color:'#354e73',
+ intro:'Составьте комплексный план школы. Не учитывайте сводные документы как новые приборы и не складывайте тепло с электричеством.',
+ devices:[
+  D('Баланс кабинета',0,0,1,'151,88 кВт·ч за 20 дней. Сводный документ, не дополнительное устройство.','document'),
+  D('Баланс освещения',0,0,1,'73,44 кВт·ч. Безопасное расписание даёт 30,24 кВт·ч экономии.','document'),
+  D('Баланс столовой',0,0,1,'470,4 кВт·ч. Холодовая цепь и приготовление обязательны.','document'),
+  D('Тепловой баланс',0,0,1,'262,912 кВт·ч тепла. Окна спортзала дают 61,44 кВт·ч отдельной тепловой экономии.','document'),
+  D('Критический сервер',20,24,1,'9,6 кВт·ч за 20 дней. Связь сохраняется.','network'),
+  D('Сводный счётчик',0,0,1,'Электричество: 151,88 + 73,44 + 470,4 + 9,6 = 705,32 кВт·ч.','document'),
+  D('Бюджет проектов',0,0,1,'Доступно 10 кредитов. Нельзя финансировать всё сразу.','document'),
+  D('Журнал безопасности',0,0,1,'Нельзя отключать сервер, холодовую цепь и необходимое освещение.','document'),
+  D('План обслуживания',0,0,1,'Первый приоритет — убрать длительное ожидание ПК. Затем сопоставить стоимость и оба вида экономии.','document')
+ ],
+ question:'Каков исходный электрический баланс школы за 20 дней?',
+ answers:['705,32 кВт·ч','968,232 кВт·ч с добавлением тепла','151,88 кВт·ч'],answer:0,
+ hypotheses:['Совместить обоснованные проекты и сохранить необходимые функции','Отключить самые мощные приборы','Записать одну и ту же экономию дважды'],correct:0,
+ explanation:'705,32 кВт·ч электричества и 262,912 кВт·ч тепла учитываются раздельно. Сводные источники не создают новые нагрузки.',
+ links:[[0,5],[1,5],[2,5],[3,5],[4,7],[0,8],[2,6],[3,6]],
+ goal:'Экономия ≥120 электрических и ≥40 тепловых кВт·ч, бюджет ≤10.'
+}
+];
+
+function evaluate(i,p){
+ const finite=v=>typeof v==='number'&&Number.isFinite(v);
+ let before=[151.88,73.44,470.4,0,705.32][i],after=before;
+ let heatBefore=i>=3?262.912:0,heatAfter=heatBefore,cost=0,safe=true,why=[];
+ const selected=id=>p.actions.includes(id);
+ const cut=(id,c,s,h=0)=>{if(selected(id)){cost+=c;after-=s;heatAfter-=h;}};
+ if(i===0){
+  safe=finite(p.pc)&&p.pc>=2&&p.pc<=10&&finite(p.light)&&p.light>=4&&p.light<=8&&(p.light===8||p.day===true);
+  after=((80+20)*6*p.pc+300*2+65*2+72*p.light+12*24)*20/1000;
+  why.push('Нужны минимум 2 часа ожидания, 4 часа света; сокращать свет можно только при подтверждённом дневном освещении.');
+ }
+ if(i===1){
+  safe=['window','inner','stairs','emergency'].every(k=>finite(p[k]))&&p.window>=4&&p.window<=10&&p.inner>=6&&p.inner<=10&&p.stairs>=8&&p.stairs<=12&&p.emergency===24;
+  after=(108*p.window+144*p.inner+72*p.stairs+12*p.emergency)*20/1000;
+  why.push('Лестница требует минимум 8 часов света, аварийная группа сохраняется 24 часа.');
+ }
+ if(i===2){
+  cut('warmer',3,48);cut('vent',2,24);cut('led',2,16);cut('seals',3,7.2);
+  safe=!selected('cold-off')&&cost<=5;
+  why.push('Бюджет — 5 кредитов. Холодильники отключать нельзя.');
+ }
+ if(i===3){
+  let ua=3,ug=3,ud=4;
+  if(selected('class-window')){ua=1.4;cost+=3}
+  if(selected('gym-window')){ug=1.5;cost+=4}
+  if(selected('door')){ud=2;cost+=2}
+  safe=finite(p.classTemp)&&p.classTemp>=20&&p.classTemp<=22&&finite(p.gymTemp)&&p.gymTemp>=18&&p.gymTemp<=20&&cost<=6;
+  heatAfter=(ua*8*(p.classTemp-4)+1.3*8*(p.classTemp-4)+ug*16*(p.gymTemp-4)+ud*4*(p.gymTemp-4))*160/1000;
+  why.push('Комфорт: кабинеты 20–22 °C, спортзал 18–20 °C. Бюджет — 6 кредитов. Тепло считается отдельно от электричества.');
+ }
+ if(i===4){
+  cut('pc',2,96);cut('hall',3,30.24);cut('warmer',3,48);
+  cut('vent',2,24);cut('led',2,16);cut('gym',4,0,61.44);
+  safe=cost<=10&&!selected('cold-off')&&p.priority==='pc';
+  why.push('Бюджет — 10 кредитов. Приоритет — ожидание ПК; продукты, связь и безопасность сохраняются.');
+ }
+ const saved=before-after,heatSaved=heatBefore-heatAfter;
+ const goal=i===3?heatSaved>=80-1e-7:i===4?saved>=120-1e-7&&heatSaved>=40-1e-7:saved>=[84,20,64][i]-1e-7;
+ return{before,after,heatBefore,heatAfter,saved,heatSaved,cost,safe,passes:safe&&goal,why};
+}
+
+const defaults=()=>({
+ pc:10,light:8,day:false,window:10,inner:10,stairs:12,emergency:24,
+ classTemp:22,gymTemp:20,priority:'pc',actions:[]
+});
+const freshCase=()=>({seen:[],edges:[],analysis:false,hypothesis:false,completed:false,plan:defaults(),pos:{x:520,y:570}});
+const fresh=()=>({version:1,current:0,cases:cases.map(freshCase),quality:'high',sound:false,reduced:false});
+let state=fresh(),hasSave=false,storageWarning='';
+const allActions=['warmer','vent','led','seals','cold-off','class-window','gym-window','door','pc','hall','gym'];
+try{
+ const raw=localStorage.getItem(KEY);
+ if(raw){
+  const s=JSON.parse(raw);
+  if(s.version!==1||!Array.isArray(s.cases)||s.cases.length!==5)throw Error('Неверный формат');
+  for(let i=0;i<5;i++){
+   const q=s.cases[i],p=state.cases[i];
+   if(!q||!Array.isArray(q.seen))throw Error('Неверный прогресс');
+   p.seen=[...new Set(q.seen.filter(x=>Number.isInteger(x)&&x>=0&&x<cases[i].devices.length))];
+   const plan=q.plan||{};
+   for(const k of ['pc','light','window','inner','stairs','emergency','classTemp','gymTemp'])
+    if(typeof plan[k]==='number'&&Number.isFinite(plan[k]))p.plan[k]=plan[k];
+   p.plan.day=plan.day===true;
+   p.plan.priority=plan.priority==='pc'?'pc':'other';
+   p.plan.actions=Array.isArray(plan.actions)?[...new Set(plan.actions.filter(x=>allActions.includes(x)))]:[];
+   p.analysis=q.analysis===true&&p.seen.length===cases[i].devices.length;
+   p.hypothesis=q.hypothesis===true&&p.analysis;
+   p.completed=q.completed===true&&p.hypothesis&&evaluate(i,p.plan).passes;
+   p.edges=Array.isArray(q.edges)?[...new Set(q.edges.filter(e=>{
+    if(typeof e!=='string'||!/^\d-\d$/.test(e))return false;
+    const [a,b]=e.split('-').map(Number);
+    return a<b&&p.seen.includes(a)&&p.seen.includes(b);
+   }))]:[];
+   if(q.pos&&Number.isFinite(q.pos.x)&&Number.isFinite(q.pos.y)&&q.pos.x>=45&&q.pos.x<=995&&q.pos.y>=70&&q.pos.y<=650)
+    p.pos={x:q.pos.x,y:q.pos.y};
+  }
+  state.current=Number.isInteger(s.current)&&s.current>=0&&s.current<5?s.current:0;
+  state.quality=['low','medium','high'].includes(s.quality)?s.quality:'high';
+  state.sound=s.sound===true;state.reduced=s.reduced===true;
+  hasSave=true;
+ }
+}catch(e){storageWarning='Сохранение недоступно или повреждено. Оно не заменяется до нового действия.'}
+const level=()=>cases[state.current],progress=()=>state.cases[state.current];
+const unlocked=i=>state.cases.slice(0,i).every(p=>p.completed);
+if(!unlocked(state.current))state.current=0;
+let playing=false,modal=false,near=-1,zoom=1,selected=null,hint=0;
+let touch={x:0,y:0},keys=new Set(),joyId=null,toastTimer;
+const canvas=$('#canvas'),ctx=canvas.getContext('2d');
+let W=1,H=1,ratio=1,last=0,saveTime=0,walkTime=0;
+let audio;
+const icons={computer:'▣',projector:'◉',lamp:'✦',network:'▥',document:'≡',fridge:'▤',vent:'✺',warmer:'▰',oven:'▣',window:'⊞',door:'▯',heating:'♨'};
+const objects=()=>level().devices.map((d,i)=>({...d,x:160+(i%4)*230,y:170+Math.floor(i/4)*170,w:112,h:62}));
+
+function toast(text){
+ $('#toast').textContent=text;$('#toast').hidden=false;
+ clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,4200);
+}
+function save(){
+ try{
+  localStorage.setItem(KEY,JSON.stringify(state));hasSave=true;
+ }catch{toast('Браузер не разрешил сохранение. Игра продолжится без записи прогресса.')}
+}
+function sound(success=true){
+ if(!state.sound)return;
+ try{
+  audio ||= new (window.AudioContext||window.webkitAudioContext)();
+  audio.resume().catch(()=>{});
+  const o=audio.createOscillator(),g=audio.createGain(),t=audio.currentTime;
+  o.connect(g);g.connect(audio.destination);o.frequency.value=success?660:230;
+  g.gain.setValueAtTime(.035,t);g.gain.exponentialRampToValueAtTime(.001,t+.15);
+  o.start(t);o.stop(t+.16);
+ }catch{}
+}
+function resetInput(){
+ keys.clear();touch={x:0,y:0};joyId=null;$('#knob').style.transform='';
+}
+function close(){
+ $('#overlay').hidden=true;modal=false;resetInput();
+ if(playing)$('#interact').focus();
+}
+function show(title,html,handler=()=>{}){
+ modal=true;resetInput();
+ $('#dialog').innerHTML=`<div class="dialog-head"><h2 id="dialog-title">${title}</h2><button data-close aria-label="Закрыть">✕</button></div><div class="dialog-body">${html}</div>`;
+ $('#overlay').hidden=false;
+ $('#dialog').onclick=e=>{
+  const b=e.target.closest('button');
+  if(!b)return;
+  if(b.hasAttribute('data-close'))close();else handler(b);
+ };
+ $('#dialog').onkeydown=e=>{
+  if(e.key!=='Tab')return;
+  const els=[...$('#dialog').querySelectorAll('button:not(:disabled),input,select')];
+  if(!els.length)return;
+  const first=els[0],last=els[els.length-1];
+  if(e.shiftKey&&(document.activeElement===first||document.activeElement===$('#dialog'))){e.preventDefault();last.focus()}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+ };
+ $('#dialog').focus();
+}
+function menu(){
+ close();playing=false;$('#game').hidden=true;$('#menu').hidden=false;
+ $('#continue').disabled=!hasSave;saveTime=performance.now();resetInput();
+}
+function enter(i){
+ if(!unlocked(i))return toast('Сначала завершите предыдущее дело.');
+ state.current=i;selected=null;hint=0;near=-1;
+ if(collides(progress().pos.x,progress().pos.y))progress().pos={x:520,y:570};
+ close();$('#menu').hidden=true;$('#game').hidden=false;playing=true;
+ $('#case-number').textContent=`ДЕЛО ${String(i+1).padStart(3,'0')} · ${level().room}`;
+ $('#case-title').textContent=level().title;
+ resize();save();
+ show('Дело открыто',`<p>${level().intro}</p><p class="feedback">${level().goal}</p><p>Двигайтесь WASD, стрелками или джойстиком. Подойдите к метке и нажмите E / «Осмотреть». Запишите все источники. Затем откройте отчёт.</p><p class="quiet">20 учебных суток — демонстрационный период, не полный календарный месяц.</p>`);
+}
+function chooseCase(){
+ show('Карта расследований',`<div class="grid">${cases.map((c,i)=>`<button data-case="${i}" ${unlocked(i)?'':'disabled'} class="card"><strong>${String(i+1).padStart(3,'0')}. ${c.title}</strong><small>${c.room}</small><span class="${state.cases[i].completed?'good':'quiet'}">${state.cases[i].completed?'Раскрыто':unlocked(i)?'Доступно':'Завершите предыдущее дело'}</span></button>`).join('')}</div>`,
+ b=>{if(b.dataset.case!==undefined)enter(Number(b.dataset.case))});
+}
+function inspect(i,fromNotebook=false){
+ if(!Number.isInteger(i)||!level().devices[i])return;
+ if(fromNotebook&&!progress().seen.includes(i))return;
+ if(!fromNotebook&&i!==near)return toast('Подойдите ближе.');
+ const d=level().devices[i],e=d.power*d.hours*d.quantity*20/1000;
+ show(d.name,`<p class="pill">УЧЕБНЫЙ ИСТОЧНИК · ${icons[d.type]}</p>
+ ${d.power?`<div class="grid"><div class="card"><small>Мощность одного</small><strong>${d.power} Вт</strong></div><div class="card"><small>Количество / время</small><strong>${d.quantity} шт. · ${d.hours} ч/сутки</strong></div></div><p class="metric">${money(e)} кВт·ч / 20 дней</p><p class="quiet">E = ${d.power} × ${d.hours} × ${d.quantity} × 20 / 1000.</p>`:'<p class="quiet">Документ, тепловой или пояснительный источник. Электрическая нагрузка ему не приписывается.</p>'}
+ <p class="feedback">${d.note}</p>
+ <div class="actions"><button data-record class="primary">${progress().seen.includes(i)?'Улика записана':'Записать улику'}</button><button data-close>В комнату</button></div>`,
+ b=>{if(b.hasAttribute('data-record')){
+  if(!progress().seen.includes(i)){progress().seen.push(i);save();sound();toast('Улика записана')}
+  inspect(i,true);
+ }});
+}
+function notebook(){
+ show('Цифровой блокнот',`<p>Источники: ${progress().seen.length}/${level().devices.length}. Открытие паспорта само по себе не записывает улику.</p><div class="grid">${level().devices.map((d,i)=>`<button data-source="${i}" ${progress().seen.includes(i)?'':'disabled'} class="card"><strong>${icons[d.type]} ${d.name}</strong><small>${progress().seen.includes(i)?'Записано · открыть':'Найдите в комнате'}</small></button>`).join('')}</div>
+ <div class="actions"><button data-board>Доска расследования</button><button data-report class="primary">Анализ и отчёт</button></div>`,
+ b=>{if(b.dataset.source!==undefined)inspect(Number(b.dataset.source),true);if(b.hasAttribute('data-board'))board();if(b.hasAttribute('data-report'))report()});
+}
+const edge=(a,b)=>[a,b].sort((x,y)=>x-y).join('-');
+const required=()=>level().links.map(([a,b])=>edge(a,b));
+function boardComplete(){
+ const r=required(),e=progress().edges;
+ return r.every(k=>e.includes(k))&&e.every(k=>r.includes(k));
+}
+function board(message=''){
+ const p=progress(),r=required();
+ let help='';
+ if(hint===1)help='ВАТТ: соединяйте прибор с данными о времени, условиях или необходимости работы. Одних ватт недостаточно.';
+ if(hint===2)help='ВАТТ: расписание, температурный журнал и регламент могут объяснять режим сразу нескольких источников.';
+ if(hint>=3){
+  const missing=r.find(k=>!p.edges.includes(k));
+  help=missing?`ВАТТ: проверьте пару «${missing.split('-').map(i=>level().devices[Number(i)].name).join('» и «')}». Сначала запишите оба источника.`:'ВАТТ: необходимые связи есть. Удалите неподтверждённые пары и проверьте цепочки.';
+ }
+ show('Доска расследования',`<p>Выберите две записанные карточки. Связь появится в списке. Произвольные пары не считаются доказательством.</p>
+ <div class="grid">${level().devices.map((d,i)=>`<button class="card ${selected===i?'selected':''}" data-node="${i}" ${p.seen.includes(i)?'':'disabled'} aria-pressed="${selected===i}"><strong>${i+1}. ${d.name}</strong><small>${p.seen.includes(i)?'Выбрать источник':'Ещё не записан'}</small></button>`).join('')}</div>
+ <h3>Связи: ${p.edges.length}</h3>${p.edges.map(k=>`<div class="link"><span>${k.split('-').map(i=>level().devices[Number(i)].name).join(' ↔ ')}</span><button data-remove="${k}" aria-label="Удалить связь">✕</button></div>`).join('')||'<p class="quiet">Соединений пока нет.</p>'}
+ ${message?`<p class="feedback">${message}</p>`:''}${help?`<p class="feedback">${help}</p>`:''}
+ <div class="actions"><button data-check class="primary">Проверить цепочки</button><button data-hint>Подсказка ${Math.min(3,hint+1)}/3</button><button data-book>Улики</button></div>`,
+ b=>{
+  const scroll=$('#dialog').scrollTop;
+  if(b.dataset.node!==undefined){
+   const i=Number(b.dataset.node);
+   if(selected===null)selected=i;
+   else if(selected===i)selected=null;
+   else{const k=edge(selected,i);if(!p.edges.includes(k))p.edges.push(k);selected=null;save()}
+   board();
+  }
+  if(b.dataset.remove){p.edges=p.edges.filter(k=>k!==b.dataset.remove);save();board()}
+  if(b.hasAttribute('data-check')){
+   const bad=p.edges.filter(k=>!r.includes(k)).length;
+   const missing=r.filter(k=>!p.edges.includes(k)).length;
+   board(boardComplete()?'Цепочки подтверждены. Данные о режимах и назначении согласованы.':`Недостающих связей: ${missing}; неподтверждённых: ${bad}. Сопоставьте прибор с объясняющим документом. Высокая мощность не доказывает лишнюю работу.`);
+   sound(boardComplete());
+  }
+  if(b.hasAttribute('data-hint')){hint=Math.min(3,hint+1);board()}
+  if(b.hasAttribute('data-book'))return notebook();
+  $('#dialog').scrollTop=scroll;
+ });
+}
+function report(){
+ const p=progress(),c=level();
+ if(p.completed)return finalReport();
+ if(p.seen.length<c.devices.length)
+  return show('Недостаточно данных',`<p>Запишите все источники: ${p.seen.length}/${c.devices.length}.</p><p class="quiet">Ещё нужны: ${c.devices.filter((_,i)=>!p.seen.includes(i)).map(d=>d.name).join(', ')}.</p>`);
+ if(!p.analysis)
+  return show('Сопоставьте данные',`<h3>${c.question}</h3><div class="grid">${c.answers.map((a,i)=>`<button data-answer="${i}">${a}</button>`).join('')}</div><p class="quiet">Формулы и исходные характеристики находятся в записанных уликах.</p>`,b=>{
+   if(b.dataset.answer===undefined)return;
+   if(Number(b.dataset.answer)===c.answer){p.analysis=true;save();sound();show('Анализ подтверждён',`<p>${c.explanation}</p><button data-next class="primary">Сформулировать гипотезу</button>`,x=>{if(x.hasAttribute('data-next'))report()})}
+   else{sound(false);show('Найдите противоречие',`<p>${c.explanation}</p><button data-retry>Повторить анализ</button>`,x=>{if(x.hasAttribute('data-retry'))report()})}
+  });
+ if(!p.hypothesis)
+  return show('Предварительная гипотеза',`<p>Какой вывод объясняет источники и сохраняет необходимые функции?</p><div class="grid">${c.hypotheses.map((a,i)=>`<button data-hyp="${i}">${a}</button>`).join('')}</div>`,b=>{
+   if(b.dataset.hyp===undefined)return;
+   if(Number(b.dataset.hyp)===c.correct){p.hypothesis=true;save();sound();plan()}
+   else{sound(false);show('Гипотеза требует проверки',`<p>${c.explanation}</p><p>Учитывайте время, назначение, комфорт и безопасность.</p><button data-retry>Повторить</button>`,x=>{if(x.hasAttribute('data-retry'))report()})}
+  });
+ plan();
+}
+
+function plan(){
+ const i=state.current,p=progress().plan;
+ const number=(key,label,min,max)=>`<label class="field">${label}<input type="number" name="${key}" min="${min}" max="${max}" step="1" value="${p[key]}"></label>`;
+ const check=(id,label)=>`<label class="check"><input type="checkbox" name="action" value="${id}" ${p.actions.includes(id)?'checked':''}><span>${label}</span></label>`;
+ let html='';
+ if(i===0)html=number('pc','Ожидание компьютеров и мониторов, ч/сутки',0,10)+number('light','Освещение, ч/сутки',0,8)+`<label class="check"><input name="day" type="checkbox" ${p.day?'checked':''}>Дневной свет подтверждён</label>`;
+ if(i===1)html=number('window','Зона у окон, ч/сутки',0,10)+number('inner','Внутренний коридор, ч/сутки',0,10)+number('stairs','Лестница, ч/сутки',0,12)+number('emergency','Аварийная готовность, ч/сутки',0,24);
+ if(i===2)html=check('warmer','Расписание мармита: 3 кредита; экономия 48 кВт·ч')+check('vent','Таймер вытяжки: 2 кредита; 24 кВт·ч')+check('led','LED: 2 кредита; 16 кВт·ч')+check('seals','Уплотнения: 3 кредита; 7,2 кВт·ч')+check('cold-off','Предложить отключение холодильников — небезопасный вариант');
+ if(i===3)html=number('classTemp','Температура кабинетов, °C',15,24)+number('gymTemp','Температура спортзала, °C',15,24)+check('class-window','Окно кабинета А: 3 кредита; U → 1,4')+check('gym-window','Окна спортзала: 4 кредита; U → 1,5')+check('door','Дверь: 2 кредита; U → 2');
+ if(i===4)html=check('pc','Сон ПК: 2 кредита; 96 электрических кВт·ч')+check('hall','Группы освещения: 3 кредита; 30,24 кВт·ч')+check('warmer','Мармит: 3 кредита; 48 кВт·ч')+check('vent','Вытяжка: 2 кредита; 24 кВт·ч')+check('led','LED кухни: 2 кредита; 16 кВт·ч')+check('gym','Окна спортзала: 4 кредита; 61,44 тепловых кВт·ч')+check('cold-off','Предложить отключение холодильников — небезопасно')+`<label class="field">Приоритет<select name="priority"><option value="pc" ${p.priority==='pc'?'selected':''}>Длительное ожидание ПК</option><option value="other" ${p.priority!=='pc'?'selected':''}>Запретить проектор</option></select></label>`;
+ show('Лаборатория решений',`<p>${level().goal}</p><form id="plan-form">${html}<div id="preview"></div><div class="actions"><button type="button" data-submit class="primary">Проверить и принять план</button><button type="button" data-board>К доске улик</button></div></form>`,b=>{
+  if(b.hasAttribute('data-board'))return board();
+  if(!b.hasAttribute('data-submit'))return;
+  const proposal=readPlan(),r=evaluate(i,proposal);
+  sound(r.passes);
+  if(r.passes){progress().plan=proposal;progress().completed=true;save();finalReport()}
+  else show('План требует доработки',`${preview(r)}<p>Прежний успешный результат, если он есть, сохранён. Небезопасный план не принимается.</p><button data-retry class="primary">Изменить план</button>`,x=>{if(x.hasAttribute('data-retry'))plan()});
+ });
+ $('#plan-form').onsubmit=e=>e.preventDefault();
+ $('#plan-form').oninput=()=>$('#preview').innerHTML=preview(evaluate(i,readPlan()));
+ $('#preview').innerHTML=preview(evaluate(i,readPlan()));
+}
+function readPlan(){
+ const f=new FormData($('#plan-form')),p=defaults();
+ for(const k of ['pc','light','window','inner','stairs','emergency','classTemp','gymTemp'])if(f.has(k))p[k]=Number(f.get(k));
+ p.day=f.has('day');p.actions=f.getAll('action').filter(x=>allActions.includes(x));
+ if(f.has('priority'))p.priority=f.get('priority');
+ return p;
+}
+function preview(r){
+ return `<div class="feedback"><strong class="${r.passes?'good':'bad'}">${r.passes?'Цель и ограничения соблюдены':r.safe?'Безопасно, но цель не достигнута':'Проверьте безопасность, комфорт или бюджет'}</strong>
+ ${state.current!==3?`<p>Электричество: ${money(r.before)} → ${money(r.after)} кВт·ч.<br>Экономия: ${money(r.saved)} кВт·ч / 20 дней.</p>`:''}
+ ${state.current>=3?`<p>Тепло: ${money(r.heatBefore)} → ${money(r.heatAfter)} кВт·ч.<br>Экономия тепла: ${money(r.heatSaved)} кВт·ч.</p>`:''}
+ ${state.current>=2?`<p>Стоимость: ${r.cost} кредитов.</p>`:''}
+ <p class="quiet">${r.why.join(' ')}</p></div>`;
+}
+function finalReport(){
+ const r=evaluate(state.current,progress().plan);
+ show('Расследование завершено',`<p class="good">Ваш безопасный план принят.</p>${preview(r)}<p>${level().explanation}</p><p class="quiet">${state.current===3?'Q = Σ(U × A × ΔT) × 160 / 1000.':'E = P × t × количество × 20 / 1000.'} Показатели расчётные, не реальные измерения школы.</p><div class="actions">${state.current<4?'<button data-next class="primary">Следующее дело</button>':'<button data-dossier class="primary">Досье детектива</button>'}<button data-alternative>Сравнить другой план</button><button data-board>Доска улик</button></div>`,b=>{
+  if(b.hasAttribute('data-next'))enter(state.current+1);
+  if(b.hasAttribute('data-dossier'))dossier();
+  if(b.hasAttribute('data-alternative'))plan();
+  if(b.hasAttribute('data-board'))board();
+ });
+}
+function dossier(){
+ const n=state.cases.filter(p=>p.completed).length;
+ const clues=state.cases.reduce((s,p)=>s+p.seen.length,0);
+ const xp=clues*15+state.cases.reduce((s,p)=>s+30*Number(p.analysis)+50*Number(p.hypothesis)+200*Number(p.completed),0);
+ const ranks=['Стажёр','Младший детектив','Энергетический инспектор','Старший детектив','Эксперт по энергосбережению','Главный аналитик','Легенда энергетического бюро'];
+ const rank=ranks[[0,150,400,800,1400,1900,2100].filter(t=>xp>=t).length-1];
+ const badges=[['Первый след',clues>0],['Первое расследование',n>0],['Все пять дел',n===5],['Ни одной пропущенной улики',clues===39],['Мастер аналитики',state.cases.every(p=>p.analysis)]];
+ show('Досье детектива',`<div class="tag">ИГРОВОЙ ПРОФИЛЬ</div><h3>${rank}</h3><p class="metric">${xp} XP</p><p>Дел раскрыто: ${n}/5. Источников: ${clues}/39.</p><div class="grid">${badges.map(([name,ok])=>`<div class="card"><strong>${ok?'✓':'○'} ${name}</strong><small>${ok?'Получено':'Ещё не получено'}</small></div>`).join('')}</div><p class="quiet">XP вычисляется по уникальным результатам: повторные нажатия не увеличивают опыт. Новая игра сбрасывает этот отдельный профиль реконструкции.</p>`);
+}
+function settings(){
+ show('Настройки',`<label class="field">Качество изображения<select id="quality"><option value="high">Высокое — телефон и ПК</option><option value="medium">Среднее</option><option value="low">Низкое</option></select></label><label class="check"><input id="sound" type="checkbox" ${state.sound?'checked':''}>Тихие звуковые сигналы</label><label class="check"><input id="reduced" type="checkbox" ${state.reduced?'checked':''}>Уменьшить анимации</label><p class="quiet">Все файлы встроены. Сохранения остаются в браузере. В некоторых браузерах хранение для file:// ограничено.</p><button data-save class="primary">Сохранить настройки</button>`,b=>{
+  if(b.hasAttribute('data-save')){
+   state.quality=$('#quality').value;state.sound=$('#sound').checked;state.reduced=$('#reduced').checked;
+   save();resize();sound();close();
+  }
+ });
+ $('#quality').value=state.quality;
+}
+
+function collides(x,y){
+ if(x<44||x>996||y<75||y>654)return true;
+ return objects().some(o=>Math.abs(x-o.x)<o.w/2+12&&Math.abs(y-o.y)<o.h/2+12);
+}
+function resize(){
+ const r=$('#viewport').getBoundingClientRect();
+ W=Math.max(1,r.width);H=Math.max(1,r.height);
+ const cap=state.quality==='high'?2:state.quality==='medium'?1.5:1;
+ ratio=Math.max(1,Math.min(window.devicePixelRatio||1,cap));
+ canvas.width=Math.round(W*ratio);canvas.height=Math.round(H*ratio);
+}
+function box(x,y,w,h,color){
+ ctx.fillStyle='#020b1577';ctx.fillRect(x-w/2+8,y-h/2+14,w,h);
+ ctx.fillStyle='#091e2c';ctx.fillRect(x-w/2,y-h/2+9,w,h);
+ ctx.fillStyle=color;ctx.fillRect(x-w/2,y-h/2,w,h-1);
+ ctx.strokeStyle='#7497a055';ctx.strokeRect(x-w/2,y-h/2,w,h);
+}
+function draw(t){
+ const c=level(),p=progress(),mobile=W<900;
+ const scale=(mobile?.95:Math.min(W/WORLD.w,H/WORLD.h))*zoom;
+ const vw=W/scale,vh=H/scale;
+ const cx=vw<WORLD.w?Math.max(vw/2,Math.min(WORLD.w-vw/2,p.pos.x)):WORLD.w/2;
+ const cy=vh<WORLD.h?Math.max(vh/2,Math.min(WORLD.h-vh/2,p.pos.y)):WORLD.h/2;
+ ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,W,H);
+ ctx.save();ctx.translate(W/2-cx*scale,H/2-cy*scale);ctx.scale(scale,scale);
+ ctx.fillStyle='#142a3b';ctx.fillRect(20,45,1000,630);
+ for(let x=40;x<1020;x+=45){ctx.strokeStyle='#40607020';ctx.beginPath();ctx.moveTo(x,70);ctx.lineTo(x,675);ctx.stroke()}
+ for(let y=90;y<675;y+=45){ctx.beginPath();ctx.moveTo(20,y);ctx.lineTo(1020,y);ctx.stroke()}
+ box(520,45,1000,48,c.color);
+ ctx.fillStyle='#9ee6e5';ctx.font='bold 16px system-ui';ctx.textAlign='center';ctx.fillText(c.room.toUpperCase(),520,50);
+ for(let x=110;x<1000;x+=260){
+  box(x,85,125,18,'#548aa0');
+  if(state.quality!=='low'){
+   const light=ctx.createLinearGradient(x,95,x,285);
+   light.addColorStop(0,'#8be2df27');light.addColorStop(1,'#8be2df00');
+   ctx.fillStyle=light;ctx.fillRect(x-65,95,130,190);
+  }
+ }
+ ctx.fillStyle='#071828';ctx.fillRect(20,70,16,605);ctx.fillRect(1004,70,16,605);ctx.fillRect(20,660,1000,15);
+ box(930,624,94,28,'#41616b');
+ ctx.fillStyle='#bed6dc';ctx.font='12px system-ui';ctx.fillText('ВЫХОД / МЕНЮ',930,630);
+ const list=objects().map((o,i)=>({...o,index:i})).concat([{player:true,y:p.pos.y}]).sort((a,b)=>a.y-b.y);
+ for(const o of list){
+  if(o.player){
+   const x=p.pos.x,y=p.pos.y;
+   ctx.fillStyle='#0008';ctx.beginPath();ctx.ellipse(x,y+7,17,7,0,0,Math.PI*2);ctx.fill();
+   const step=state.reduced?0:Math.sin(walkTime)*4;
+   ctx.fillStyle='#070e1f';ctx.fillRect(x-10,y-7,7,13+step);ctx.fillRect(x+3,y-7,7,13-step);
+   ctx.fillStyle='#204b6a';ctx.fillRect(x-14,y-33,28,27);
+   ctx.fillStyle='#64e5c3';ctx.fillRect(x-13,y-31,4,20);ctx.fillRect(x+9,y-31,4,20);
+   ctx.fillStyle='#ddae88';ctx.beginPath();ctx.arc(x,y-43,10,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle='#101b2c';ctx.fillRect(x-11,y-54,22,8);
+   ctx.fillStyle='#a4ffe0';ctx.fillRect(x+13,y-21,8,12);
+   continue;
+  }
+  const found=p.seen.includes(o.index),active=near===o.index;
+  box(o.x,o.y,o.w,o.h,o.type==='document'?'#375267':o.type==='window'?'#436d82':'#294652');
+  if(o.type==='computer'){
+   ctx.fillStyle='#081322';ctx.fillRect(o.x-31,o.y-23,62,34);
+   ctx.fillStyle='#5ad9c4';ctx.fillRect(o.x-26,o.y-19,52,24);
+   ctx.fillStyle='#33576b';ctx.fillRect(o.x-18,o.y+18,36,5);
+  }else{
+   ctx.fillStyle='#b5e9df';ctx.font='28px system-ui';ctx.textAlign='center';ctx.fillText(icons[o.type],o.x,o.y+8);
+  }
+  const pulse=state.reduced?0:Math.sin(t/450+o.index)*2;
+  ctx.strokeStyle=active?'#bcffe3':found?'#5bbaab':'#65e5c4';
+  ctx.lineWidth=active?3:1.5;ctx.beginPath();ctx.arc(o.x,o.y-52,10+(active?pulse:0),0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle=found?'#65e5c4':'#c9e5ed';ctx.font='12px system-ui';ctx.textAlign='center';ctx.fillText(found?'✓':String(o.index+1),o.x,o.y-48);
+  ctx.fillStyle='#c7dce4';ctx.font='12px system-ui';ctx.fillText(o.name,o.x,o.y+50);
+ }
+ ctx.restore();
+}
+function frame(t){
+ const dt=Math.min((t-last)/1000||0,.04);last=t;
+ if(playing){
+  if(!modal&&!document.hidden){
+   let x=Number(keys.has('d')||keys.has('arrowright'))-Number(keys.has('a')||keys.has('arrowleft'))+touch.x;
+   let y=Number(keys.has('s')||keys.has('arrowdown'))-Number(keys.has('w')||keys.has('arrowup'))+touch.y;
+   const len=Math.hypot(x,y);if(len>1){x/=len;y/=len}
+   const p=progress().pos,step=dt*185;
+   if(!collides(p.x+x*step,p.y))p.x+=x*step;
+   if(!collides(p.x,p.y+y*step))p.y+=y*step;
+   if(len>.05)walkTime+=dt*13;
+   near=-1;let distance=101;
+   objects().forEach((o,i)=>{const d=Math.hypot(p.x-o.x,p.y-o.y);if(d<distance){near=i;distance=d}});
+   if(t-saveTime>1600&&len>.05){save();saveTime=t}
+  }
+  const p=progress(),c=level();
+  $('#mission').textContent=p.completed?'Дело раскрыто · можно исследовать дальше':p.seen.length<c.devices.length?`Найдите источники: ${p.seen.length}/${c.devices.length}`:!p.analysis?'Источники собраны → Отчёт / анализ':!p.hypothesis?'Подтвердите гипотезу в отчёте':'Составьте безопасный план';
+  $('#near').textContent=near>=0?level().devices[near].name:'Подойдите к бирюзовой метке';
+  $('#interact').disabled=near<0||modal;
+  if(!document.hidden)draw(t);
+ }
+ requestAnimationFrame(frame);
+}
+
+$('#new').onclick=()=>{
+ if(hasSave&&!confirm('Начать заново? Будет сброшено только сохранение этой реконструкции.'))return;
+ state=fresh();save();enter(0);
+};
+$('#continue').onclick=()=>enter(state.current);
+$('#cases').onclick=chooseCase;$('#achievements').onclick=dossier;$('#settings').onclick=settings;
+$('#back').onclick=()=>{save();menu()};
+$('#notebook').onclick=notebook;$('#report').onclick=report;
+$('#interact').onclick=()=>inspect(near);
+$('#plus').onclick=()=>zoom=Math.min(1.5,zoom+.1);
+$('#minus').onclick=()=>zoom=Math.max(.7,zoom-.1);
+$('#full').onclick=async()=>{
+ try{
+  if(document.fullscreenElement)await document.exitFullscreen();
+  else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();
+  else toast('Полноэкранный режим в этом браузере недоступен.');
+ }catch{toast('Браузер не разрешил полноэкранный режим.')}
+};
+document.addEventListener('keydown',e=>{
+ const k=e.key.toLowerCase();
+ if(k==='escape'){if(modal)close();else if(playing){save();menu()}return}
+ if(modal||!playing||/input|select|textarea/i.test(e.target.tagName))return;
+ if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','e'].includes(k))e.preventDefault();
+ if(k==='e'&&!e.repeat)inspect(near);else keys.add(k);
+});
+document.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
+window.addEventListener('blur',resetInput);
+document.addEventListener('visibilitychange',()=>{resetInput();if(hasSave)save()});
+window.addEventListener('pagehide',()=>{if(hasSave)save()});
+window.addEventListener('resize',resize);
+
+const joy=$('#joystick');
+function joyMove(e){
+ if(e.pointerId!==joyId)return;
+ const r=joy.getBoundingClientRect(),max=r.width/2-25;
+ let x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2;
+ const n=Math.hypot(x,y);if(n>max){x*=max/n;y*=max/n}
+ touch=n<6?{x:0,y:0}:{x:x/max,y:y/max};
+ $('#knob').style.transform=`translate(${x}px,${y}px)`;
+}
+joy.onpointerdown=e=>{
+ if(modal||!playing||joyId!==null)return;
+ e.preventDefault();joyId=e.pointerId;joy.setPointerCapture(e.pointerId);joyMove(e);
+};
+joy.onpointermove=joyMove;
+const release=e=>{if(e.pointerId===joyId)resetInput()};
+joy.onpointerup=release;joy.onpointercancel=release;joy.onlostpointercapture=release;
+
+$('#zip').onclick=()=>{
+ try{
+  const files=[
+   ['ECO-DETECTIVE/index.html','<!doctype html>\n'+document.documentElement.outerHTML],
+   ['ECO-DETECTIVE/README.txt',
+    'ECO DETECTIVE — portable reconstruction.\nOpen index.html in a modern browser. No network or installation required.\nThis is reconstructed HTML/CSS/JavaScript, not the lost original TypeScript/Phaser source.\nFive cases, movement, touch controls, evidence board, energy plans and local saves are included.\nOriginal Three.js models, school hub, NPC and advanced simulator are absent.\nAll school layouts, equipment figures and events are fictional.\nPersonal localStorage progress is not included in this archive.\n']
+  ];
+  const enc=new TextEncoder(),parts=[],dirs=[];let offset=0;
+  const crc32=b=>{
+   let c=0xffffffff;
+   for(const v of b){c^=v;for(let k=0;k<8;k++)c=(c>>>1)^((c&1)?0xedb88320:0)}
+   return(c^0xffffffff)>>>0;
+  };
+  for(const [path,text]of files){
+   const name=enc.encode(path),body=enc.encode(text),crc=crc32(body);
+   const h=new Uint8Array(30+name.length),v=new DataView(h.buffer);
+   v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);v.setUint16(6,0x800,true);v.setUint16(12,33,true);
+   v.setUint32(14,crc,true);v.setUint32(18,body.length,true);v.setUint32(22,body.length,true);v.setUint16(26,name.length,true);h.set(name,30);
+   const d=new Uint8Array(46+name.length),w=new DataView(d.buffer);
+   w.setUint32(0,0x02014b50,true);w.setUint16(4,20,true);w.setUint16(6,20,true);w.setUint16(8,0x800,true);w.setUint16(14,33,true);
+   w.setUint32(16,crc,true);w.setUint32(20,body.length,true);w.setUint32(24,body.length,true);w.setUint16(28,name.length,true);w.setUint32(42,offset,true);d.set(name,46);
+   parts.push(h,body);dirs.push(d);offset+=h.length+body.length;
+  }
+  const end=new Uint8Array(22),e=new DataView(end.buffer);
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);
+  e.setUint32(12,dirs.reduce((n,d)=>n+d.length,0),true);e.setUint32(16,offset,true);
+  const url=URL.createObjectURL(new Blob([...parts,...dirs,end],{type:'application/zip'}));
+  const a=document.createElement('a');a.href=url;a.download='ECO-DETECTIVE-reconstructed.zip';
+  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
+ }catch(e){toast('Не удалось создать ZIP: '+e.message)}
+};
+menu();resize();requestAnimationFrame(frame);
+if(storageWarning)toast(storageWarning);
+})();
+</script>
+</body>
+</html>
